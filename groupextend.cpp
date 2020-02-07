@@ -3,7 +3,6 @@
 */
 #include <windows.h>
 #include <TlHelp32.h>
-#include <iostream>
 #include <map>
 #include <atlstr.h>
 #include "helpers.h"
@@ -22,15 +21,15 @@ namespace GroupExtend
 
 void ShowUsage()
 {
-    wprintf(L"\nUsage: groupextend [pid|name]\n");
+	wprintf(L"\nUsage: groupextend [pid|name]\n");
 }
 
 // the meat
 int ExtendGroupForProcess(unsigned long pid)
-{	
+{
 	Log.Write(L"\n Monitoring process %u", pid);
 	Log.Write(L"\n");
-	
+
 	unsigned short nActiveGroupCount = static_cast<unsigned short>(GetActiveProcessorGroupCount());
 	if (nActiveGroupCount < 2)
 	{
@@ -63,25 +62,25 @@ int ExtendGroupForProcess(unsigned long pid)
 	}
 	Log.Write(L"\n Process currently has threads on group(s)");
 	for (auto& i : vecGroupsThisProcess)
-	{		
+	{
 		Log.Write(L" %u", i);
 	}
 	unsigned short nDefaultGroupId = vecGroupsThisProcess[0];
 
 	// track all thread assignments to processor groups (all threads in the managed app)
-	std::map<unsigned long, unsigned short> mapThreadIDsToProcessorGroupNum;	
-	
+	std::map<unsigned long, unsigned short> mapThreadIDsToProcessorGroupNum;
+
 	// keep count of threads per group (group ID is index)
-	std::vector<unsigned long> vecThreadCountPerGroup;			
-	
+	std::vector<unsigned long> vecThreadCountPerGroup;
+
 	// initialize vector
 	for (unsigned short n = 0; n < nActiveGroupCount; n++)
 	{
-		vecThreadCountPerGroup.push_back(0);		
+		vecThreadCountPerGroup.push_back(0);
 	}
 
 	do
-	{		
+	{
 		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 		if (hSnapshot == INVALID_HANDLE_VALUE)
 		{
@@ -90,7 +89,7 @@ int ExtendGroupForProcess(unsigned long pid)
 		}
 
 		if (hSnapshot)
-		{			
+		{
 			THREADENTRY32 te32;
 			te32.dwSize = sizeof(THREADENTRY32);
 			if (!Thread32First(hSnapshot, &te32))
@@ -99,9 +98,9 @@ int ExtendGroupForProcess(unsigned long pid)
 				CloseHandle(hSnapshot);
 				return(FALSE);
 			}
-			
+
 			// for marking each thread ID as found so we can identify deleted threads and remove from mapThreadIDsToProcessorGroupNum
-			std::map<unsigned long, bool> mapThreadIDsFoundThisEnum;			
+			std::map<unsigned long, bool> mapThreadIDsFoundThisEnum;
 			do
 			{
 				if (pid == te32.th32OwnerProcessID)
@@ -115,7 +114,7 @@ int ExtendGroupForProcess(unsigned long pid)
 			for (auto& i : mapThreadIDsToProcessorGroupNum)
 			{
 				if (mapThreadIDsFoundThisEnum.find(i.first) == mapThreadIDsFoundThisEnum.end())
-				{					
+				{
 					vecPendingThreadIDDeletions.push_back(i.first);
 				}
 			}
@@ -123,7 +122,7 @@ int ExtendGroupForProcess(unsigned long pid)
 			{
 				unsigned short nGroupId = mapThreadIDsToProcessorGroupNum.find(i)->second;
 				vecThreadCountPerGroup[nGroupId]--;
-				mapThreadIDsToProcessorGroupNum.erase(i);				
+				mapThreadIDsToProcessorGroupNum.erase(i);
 				Log.Write(L"\n Thread %u terminated on group %u", i, nGroupId);
 			}
 			// add new threads
@@ -137,16 +136,16 @@ int ExtendGroupForProcess(unsigned long pid)
 			}
 			for (auto& i : vecPendingThreadIDAdditions)
 			{
-				unsigned short nGroupId=GroupExtend::INVALID_GROUP_ID;
+				unsigned short nGroupId = GroupExtend::INVALID_GROUP_ID;
 				// determine target group (if room on default group, use it, then use others)
 				// if not default group, check CPU assignment mask of group for first free CPU, and use it
 				if (vecThreadCountPerGroup[nDefaultGroupId] < vecProcessorsPerGroup[nDefaultGroupId])
 				{
 					nGroupId = nDefaultGroupId;
-					Log.Write(L"\n Leaving thread in default group.");					
+					Log.Write(L"\n Leaving thread in default group.");
 				}
 				else
-				{					
+				{
 					for (int n = 0; n < nActiveGroupCount; n++)
 					{
 						// only check groups other than default
@@ -154,23 +153,23 @@ int ExtendGroupForProcess(unsigned long pid)
 						{
 							if (vecThreadCountPerGroup[n] < vecProcessorsPerGroup[n])
 							{
-								nGroupId = n;						
+								nGroupId = n;
 								break;
 							}
 						}
 					}
-				}				
+				}
 				if (nGroupId == GroupExtend::INVALID_GROUP_ID)
 				{
 					nGroupId = nDefaultGroupId;
 					Log.Write(L"\n No space in supplemental group(s), leaving in default group");
-				}					
+				}
 				// if not default group, then select specific CPU
 				if (nGroupId != nDefaultGroupId)
-				{									
+				{
 					HANDLE hThread = OpenThread(THREAD_SET_INFORMATION | THREAD_QUERY_INFORMATION, FALSE, i);
 					if (hThread)
-					{						
+					{
 						GROUP_AFFINITY grpAffinity = {};
 						grpAffinity.Group = nGroupId;
 						grpAffinity.Mask = vecAllCPUMaskPerGroup[nGroupId];
@@ -181,16 +180,16 @@ int ExtendGroupForProcess(unsigned long pid)
 							// error, so leave in default group						
 							nGroupId = nDefaultGroupId;
 							Log.Write(L"\n WARNING: Error setting thread affinity for %u (terminated too quick?). Leaving in default group.", i);
-						}						
+						}
 					}
 					else
 					{
 						// no access, so leave in default group						
 						nGroupId = nDefaultGroupId;
 						Log.Write(L"\n WARNING: No access to thread %u. Leaving in default group.", i);
-					}				
+					}
 				}
-				Log.Write(L"\n Thread %u found, group %u", i, nGroupId);								
+				Log.Write(L"\n Thread %u found, group %u", i, nGroupId);
 				vecThreadCountPerGroup[nGroupId]++;
 				mapThreadIDsToProcessorGroupNum[i] = nGroupId;
 
@@ -211,7 +210,7 @@ int ExtendGroupForProcess(unsigned long pid)
 		}
 		CloseHandle(hSnapshot);
 	} while (WaitForSingleObject(g_hExitEvent, 1000) == WAIT_TIMEOUT);
-	
+
 	return 0;
 }
 
@@ -221,11 +220,11 @@ int wmain(int argc, const wchar_t* argv[])
 	Log.Write(GroupExtend::BUILD_STRING_FMT, GroupExtend::BUILD_NUM_STR, __DATE__);
 	Log.Write(L"\n");
 
-    if (argc < 2)
-    {
-        ShowUsage();
-        return 1;
-    }
+	if (argc < 2)
+	{
+		ShowUsage();
+		return 1;
+	}
 
 	g_hExitEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
@@ -252,7 +251,7 @@ int wmain(int argc, const wchar_t* argv[])
 			}
 		}
 	}
-	
+
 	if (vecTargetPIDs.size() == 0)
 	{
 		Log.Write(L"\nERROR: No processes found that match specification.\n");
@@ -267,8 +266,8 @@ int wmain(int argc, const wchar_t* argv[])
 	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 
-	int nR=ExtendGroupForProcess(vecTargetPIDs[0]);
-	
+	int nR = ExtendGroupForProcess(vecTargetPIDs[0]);
+
 	CloseHandle(g_hExitEvent);
 	return nR;
 }
