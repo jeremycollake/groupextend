@@ -153,20 +153,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="entry.cpp" />
     <ClCompile Include="groupextend.cpp" />
     <ClCompile Include="helpers.cpp" />
     <ClCompile Include="LogOut.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="entry.h" />
+    <ClInclude Include="groupextend.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="LogOut.h" />
     <ClInclude Include="resource.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="groupextend.rc" />
+    <ClInclude Include="version.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="upload.cmd" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="groupextend.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

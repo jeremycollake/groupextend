@@ -6,3 +6,9 @@
 *.aps
 /groupextend.vcxproj.user
 /groupextend.vcxproj.filters
+/Release/groupextend.tlog
+/x64/Release/groupextend.tlog
+/x64/Debug/groupextend.tlog
+/x64/Debug
+/x64/Release
+/Release

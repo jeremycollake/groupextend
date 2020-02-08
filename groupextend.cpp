@@ -7,42 +7,10 @@
 #include "helpers.h"
 #include "LogOut.h"
 #include "version.h"
-
-HANDLE g_hExitEvent = NULL;
-
-namespace GroupExtend
-{
-	const WCHAR* BUILD_NUM_STR = CURRENT_VERSION;
-	const unsigned int REFRESH_MS = 1000;
-	const unsigned short INVALID_GROUP_ID = 256;		
-	const WCHAR* INTRO_STRING = L"\ngroupextend, (c)2020 Jeremy Collake <jeremy@bitsum.com>, https://bitsum.com";
-	const WCHAR* BUILD_STRING_FMT = L"\nbuild %s date %hs";
-}
-
-BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
-{
-	switch (fdwCtrlType)
-	{
-	case CTRL_SHUTDOWN_EVENT:
-	case CTRL_LOGOFF_EVENT:
-	case CTRL_CLOSE_EVENT:
-	case CTRL_C_EVENT:
-	case CTRL_BREAK_EVENT:
-		wprintf(L"\n > Ctrl event");
-		if(g_hExitEvent) SetEvent(g_hExitEvent);
-		return TRUE;
-	default:
-		return FALSE;
-	}
-}
-
-void ShowUsage()
-{
-	wprintf(L"\nUsage: groupextend [pid|name]\n");
-}
+#include "entry.h"
 
 // the meat
-int ExtendGroupForProcess(unsigned long pid, LogOut &Log)
+int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Log)
 {
 	Log.Write(L"\n Monitoring process %u", pid);
 	Log.Write(L"\n");
@@ -224,68 +192,8 @@ int ExtendGroupForProcess(unsigned long pid, LogOut &Log)
 			}
 		}
 		CloseHandle(hSnapshot);
-	} while (WaitForSingleObject(g_hExitEvent, GroupExtend::REFRESH_MS) == WAIT_TIMEOUT);
+	} while (WaitForSingleObject(hQuitNotifyEvent, GroupExtend::REFRESH_MS) == WAIT_TIMEOUT);
 
 	return 0;
 }
 
-int wmain(int argc, const wchar_t* argv[])
-{
-	LogOut Log(LogOut::LTARGET_STDOUT);
-	Log.Write(GroupExtend::INTRO_STRING);
-	Log.Write(GroupExtend::BUILD_STRING_FMT, GroupExtend::BUILD_NUM_STR, __DATE__);
-	Log.Write(L"\n");
-
-	if (argc < 2)
-	{
-		ShowUsage();
-		return 1;
-	}
-
-	g_hExitEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-
-	// try to resolve command line argument(s) to PIDs from exeName
-	// if that fails, assume is numeric PID
-	// this allows for processes with exeNames of integers (if that ever happens)	
-	std::vector<unsigned long> vecTargetPIDs;
-	for (int i = 1; i < argc; i++)
-	{
-		if (GetPIDsForProcessName(argv[i], vecTargetPIDs))
-		{
-			Log.Write(L"\n%s has instances of PID(s)", argv[i]);
-			for (auto& pid : vecTargetPIDs)
-			{
-				Log.Write(L" %u", pid);
-			}
-		}
-		else
-		{
-			unsigned long pid = wcstoul(argv[i], nullptr, 10);
-			if (pid)
-			{
-				vecTargetPIDs.push_back(pid);
-			}
-		}
-	}
-
-	if (vecTargetPIDs.size() == 0)
-	{
-		Log.Write(L"\nERROR: No processes found that match specification.\n");
-		return 5;
-	}
-
-	if (vecTargetPIDs.size() > 1)
-	{
-		Log.Write(L"\nWARNING: Multiple process instances were found, but groupextend can currently only manage one (per instance). Managing %u", vecTargetPIDs[0]);
-	}
-
-	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
-	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
-
-	SetConsoleCtrlHandler(CtrlHandler, TRUE);
-
-	int nR = ExtendGroupForProcess(vecTargetPIDs[0], Log);
-
-	CloseHandle(g_hExitEvent);
-	return nR;
-}
