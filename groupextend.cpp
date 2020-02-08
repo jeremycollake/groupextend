@@ -13,7 +13,8 @@ LogOut Log(LogOut::LTARGET_STDOUT);
 
 namespace GroupExtend
 {
-	const unsigned short INVALID_GROUP_ID = 256;
+	const unsigned int REFRESH_MS = 1000;
+	const unsigned short INVALID_GROUP_ID = 256;	
 	const WCHAR* BUILD_NUM_STR = L"002";
 	const WCHAR* INTRO_STRING = L"\ngroupextend, (c)2020 Jeremy Collake <jeremy@bitsum.com>, https://bitsum.com";
 	const WCHAR* BUILD_STRING_FMT = L"\nbuild %s date %hs";
@@ -226,7 +227,7 @@ int ExtendGroupForProcess(unsigned long pid)
 			}
 		}
 		CloseHandle(hSnapshot);
-	} while (WaitForSingleObject(g_hExitEvent, 1000) == WAIT_TIMEOUT);
+	} while (WaitForSingleObject(g_hExitEvent, GroupExtend::REFRESH_MS) == WAIT_TIMEOUT);
 
 	return 0;
 }
