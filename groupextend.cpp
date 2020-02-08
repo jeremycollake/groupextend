@@ -19,6 +19,23 @@ namespace GroupExtend
 	const WCHAR* BUILD_STRING_FMT = L"\nbuild %s date %hs";
 }
 
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
+{
+	switch (fdwCtrlType)
+	{
+	case CTRL_SHUTDOWN_EVENT:
+	case CTRL_LOGOFF_EVENT:
+	case CTRL_CLOSE_EVENT:
+	case CTRL_C_EVENT:
+	case CTRL_BREAK_EVENT:
+		wprintf(L"\n > Ctrl event");
+		if(g_hExitEvent) SetEvent(g_hExitEvent);
+		return TRUE;
+	default:
+		return FALSE;
+	}
+}
+
 void ShowUsage()
 {
 	wprintf(L"\nUsage: groupextend [pid|name]\n");
@@ -265,6 +282,8 @@ int wmain(int argc, const wchar_t* argv[])
 
 	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+
+	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
 	int nR = ExtendGroupForProcess(vecTargetPIDs[0]);
 
