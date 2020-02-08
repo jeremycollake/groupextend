@@ -4,15 +4,15 @@
 #include <windows.h>
 #include <TlHelp32.h>
 #include <map>
-#include <atlstr.h>
 #include "helpers.h"
 #include "LogOut.h"
+#include "version.h"
 
 HANDLE g_hExitEvent = NULL;
 
 namespace GroupExtend
 {
-	const WCHAR* BUILD_NUM_STR = L"003";
+	const WCHAR* BUILD_NUM_STR = CURRENT_VERSION;
 	const unsigned int REFRESH_MS = 1000;
 	const unsigned short INVALID_GROUP_ID = 256;		
 	const WCHAR* INTRO_STRING = L"\ngroupextend, (c)2020 Jeremy Collake <jeremy@bitsum.com>, https://bitsum.com";
