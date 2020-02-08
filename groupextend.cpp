@@ -9,7 +9,6 @@
 #include "LogOut.h"
 
 HANDLE g_hExitEvent = NULL;
-LogOut Log(LogOut::LTARGET_STDOUT);
 
 namespace GroupExtend
 {
@@ -43,7 +42,7 @@ void ShowUsage()
 }
 
 // the meat
-int ExtendGroupForProcess(unsigned long pid)
+int ExtendGroupForProcess(unsigned long pid, LogOut &Log)
 {
 	Log.Write(L"\n Monitoring process %u", pid);
 	Log.Write(L"\n");
@@ -209,9 +208,7 @@ int ExtendGroupForProcess(unsigned long pid)
 				}
 				Log.Write(L"\n Thread %u found, group %u", i, nGroupId);
 				vecThreadCountPerGroup[nGroupId]++;
-				mapThreadIDsToProcessorGroupNum[i] = nGroupId;
-
-				_ASSERT(vecAssignedAffinityPerGroup[nDefaultGroupId] == 0);
+				mapThreadIDsToProcessorGroupNum[i] = nGroupId;				
 			}
 
 			Log.Write(L"\n Managing %u threads", mapThreadIDsToProcessorGroupNum.size());
@@ -234,6 +231,7 @@ int ExtendGroupForProcess(unsigned long pid)
 
 int wmain(int argc, const wchar_t* argv[])
 {
+	LogOut Log(LogOut::LTARGET_STDOUT);
 	Log.Write(GroupExtend::INTRO_STRING);
 	Log.Write(GroupExtend::BUILD_STRING_FMT, GroupExtend::BUILD_NUM_STR, __DATE__);
 	Log.Write(L"\n");
@@ -286,7 +284,7 @@ int wmain(int argc, const wchar_t* argv[])
 
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
-	int nR = ExtendGroupForProcess(vecTargetPIDs[0]);
+	int nR = ExtendGroupForProcess(vecTargetPIDs[0], Log);
 
 	CloseHandle(g_hExitEvent);
 	return nR;
