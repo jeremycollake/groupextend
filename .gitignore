@@ -12,3 +12,7 @@
 /x64/Debug
 /x64/Release
 /Release
+/libProcessorGroupExtender/x64/Release/libProce.F31C257F.tlog
+/libProcessorGroupExtender/x64/Release
+*.user
+*.filters

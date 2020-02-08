@@ -1,10 +1,5 @@
 #pragma once
 
-#include <Windows.h>
-#include <TlHelp32.h>
-#include <vector>
-#include <map>
-
 // resolve process name to PID(s)
 unsigned int GetPIDsForProcessName(const WCHAR* pwszBaseName, std::vector<unsigned long>& vFoundPids);
 // return value is count of processor groups. Returns list of groups associated with this process

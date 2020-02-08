@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29728.190
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "groupextend", "groupextend.vcxproj", "{1526BC87-BEE5-4C42-8BD5-A94FDC94692C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libProcessorGroupExtender", "libProcessorGroupExtender\libProcessorGroupExtender.vcxproj", "{F31C257F-8245-427A-97A5-669B0BB8D907}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{1526BC87-BEE5-4C42-8BD5-A94FDC94692C}.Release|x64.Build.0 = Release|x64
 		{1526BC87-BEE5-4C42-8BD5-A94FDC94692C}.Release|x86.ActiveCfg = Release|Win32
 		{1526BC87-BEE5-4C42-8BD5-A94FDC94692C}.Release|x86.Build.0 = Release|Win32
+		{F31C257F-8245-427A-97A5-669B0BB8D907}.Debug|x64.ActiveCfg = Debug|x64
+		{F31C257F-8245-427A-97A5-669B0BB8D907}.Debug|x64.Build.0 = Debug|x64
+		{F31C257F-8245-427A-97A5-669B0BB8D907}.Debug|x86.ActiveCfg = Debug|Win32
+		{F31C257F-8245-427A-97A5-669B0BB8D907}.Debug|x86.Build.0 = Debug|Win32
+		{F31C257F-8245-427A-97A5-669B0BB8D907}.Release|x64.ActiveCfg = Release|x64
+		{F31C257F-8245-427A-97A5-669B0BB8D907}.Release|x64.Build.0 = Release|x64
+		{F31C257F-8245-427A-97A5-669B0BB8D907}.Release|x86.ActiveCfg = Release|Win32
+		{F31C257F-8245-427A-97A5-669B0BB8D907}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

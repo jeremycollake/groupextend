@@ -1,8 +1,8 @@
 /*
 * (c)2019 Jeremy Collake <jeremy@bitsum.com>, Bitsum LLC
 */
+#include "pch.h"
 #include "LogOut.h"
-#include <atlstr.h>
 
 LogOut::LogOut(const LOG_TARGET logTarget) : logTarget(logTarget)
 {	

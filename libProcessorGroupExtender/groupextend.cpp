@@ -1,13 +1,12 @@
 /*
 * (c)2020 Jeremy Collake <jeremy@bitsum.com>, Bitsum LLC
 */
-#include <windows.h>
-#include <TlHelp32.h>
-#include <map>
+#include "pch.h"
+#include "framework.h"
 #include "helpers.h"
 #include "LogOut.h"
-#include "version.h"
-#include "entry.h"
+#include "../version.h"
+#include "../entry.h"
 
 // the meat
 int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Log)
@@ -196,4 +195,3 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 
 	return 0;
 }
-

@@ -1,8 +1,8 @@
 #include <windows.h>
-#include "LogOut.h"
-#include "groupextend.h"
+#include "libProcessorGroupExtender/LogOut.h"
+#include "libProcessorGroupExtender/helpers.h"
+#include "libProcessorGroupExtender/groupextend.h"
 #include "entry.h"
-#include "helpers.h"
 
 HANDLE g_hExitEvent = NULL;
 
