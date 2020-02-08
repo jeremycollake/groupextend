@@ -19,10 +19,8 @@ void LogOut::Write(LPCTSTR fmt, ...)
 	CString csTemp;
 	csTemp.Format(L"%s", szBuf);
 	switch (logTarget)
-	{
-	default:
-	case LTARGET_STDOUT:
-		//std::cout << csTemp;
+	{	
+	case LTARGET_STDOUT:		
 		wprintf(L"%s", csTemp.GetBuffer());
 		break;
 	case LTARGET_FILE:
@@ -33,9 +31,11 @@ void LogOut::Write(LPCTSTR fmt, ...)
 		csTemp.Remove('\r');
 		MyDebugOutput(csTemp);
 		break;
+	case LTARGET_NONE:
+	default:	
+		break;
 	}
 }
-
 
 void LogOut::FormattedErrorOut(const WCHAR* msg)
 {

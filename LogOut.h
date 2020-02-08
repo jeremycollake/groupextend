@@ -17,7 +17,8 @@ class LogOut
 public:
 	enum LOG_TARGET
 	{
-		LTARGET_DEBUG = 0,
+		LTARGET_NONE = 0,
+		LTARGET_DEBUG,
 		LTARGET_STDOUT,
 		LTARGET_FILE
 	};
