@@ -25,6 +25,9 @@ public:
 	LOG_TARGET logTarget;
 	
 	LogOut(const LOG_TARGET logTarget = LTARGET_STDOUT);
+	
+	void SetTarget(const LOG_TARGET logTarget);
+
 	void Write(LPCTSTR fmt, ...);
 
 	void FormattedErrorOut(LPCTSTR msg);

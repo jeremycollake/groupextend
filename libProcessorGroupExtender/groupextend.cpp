@@ -2,22 +2,27 @@
 * (c)2020 Jeremy Collake <jeremy@bitsum.com>, Bitsum LLC
 */
 #include "pch.h"
+#include "groupextend.h"
 #include "framework.h"
 #include "helpers.h"
 #include "LogOut.h"
 #include "../version.h"
 #include "../entry.h"
 
+// async wrapper implemented in header file
+
 // the meat
-int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Log)
+int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 {
-	Log.Write(L"\n Monitoring process %u", pid);
-	Log.Write(L"\n");
+	m_log.Write(L"\n Monitoring process %u with refresh rate of %u ms", m_pid, m_nRefreshRateMs);
+	
+	_ASSERT(m_pid && m_nRefreshRateMs>=GroupExtend::REFRESH_MINIMUM_ALLOWED_MS);
 
 	unsigned short nActiveGroupCount = static_cast<unsigned short>(GetActiveProcessorGroupCount());
 	if (nActiveGroupCount < 2)
 	{
-		Log.Write(L"\n ERROR: Active processor groups is only %u. Nothing to do, aborting.", nActiveGroupCount);
+		m_log.Write(L"\n ERROR: Active processor groups is only %u. Nothing to do, aborting.", nActiveGroupCount);		
+		if (m_hThreadStoppedEvent) SetEvent(m_hThreadStoppedEvent);
 		return 2;
 	}
 
@@ -34,20 +39,21 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 
 	// now get group info for target process
 	std::vector<unsigned short> vecGroupsThisProcess;
-	if (!GetProcessProcessorGroups(pid, vecGroupsThisProcess))
+	if (!GetProcessProcessorGroups(m_pid, vecGroupsThisProcess))
 	{
-		Log.Write(L"\n ERROR: GetProcessProcessorGroups returned 0. Aborting.");
+		m_log.Write(L"\n ERROR: GetProcessProcessorGroups returned 0. Aborting.");
+		if (m_hThreadStoppedEvent) SetEvent(m_hThreadStoppedEvent);
 		return 3;
 	}
 	if (vecGroupsThisProcess.size() > 1)
 	{
-		Log.Write(L"\n WARNING: Process is already multi-group! This algorithm is not (yet) designed to handle this situation.");
+		m_log.Write(L"\n WARNING: Process is already multi-group! This algorithm is not (yet) designed to handle this situation.");
 		// continue on, debatably
 	}
-	Log.Write(L"\n Process currently has threads on group(s)");
+	m_log.Write(L"\n Process currently has threads on group(s)");
 	for (auto& i : vecGroupsThisProcess)
 	{
-		Log.Write(L" %u", i);
+		m_log.Write(L" %u", i);
 	}
 	unsigned short nDefaultGroupId = vecGroupsThisProcess[0];
 
@@ -68,7 +74,7 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 		if (hSnapshot == INVALID_HANDLE_VALUE)
 		{
-			Log.FormattedErrorOut(L" CreateToolhelp32Snapshot");
+			m_log.FormattedErrorOut(L" CreateToolhelp32Snapshot");
 			return 3;
 		}
 
@@ -78,7 +84,7 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 			te32.dwSize = sizeof(THREADENTRY32);
 			if (!Thread32First(hSnapshot, &te32))
 			{
-				Log.FormattedErrorOut(L" Thread32First");
+				m_log.FormattedErrorOut(L" Thread32First");
 				CloseHandle(hSnapshot);
 				return(FALSE);
 			}
@@ -87,7 +93,7 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 			std::map<unsigned long, bool> mapThreadIDsFoundThisEnum;
 			do
 			{
-				if (pid == te32.th32OwnerProcessID)
+				if (m_pid == te32.th32OwnerProcessID)
 				{
 					mapThreadIDsFoundThisEnum[te32.th32ThreadID] = true;
 				}
@@ -107,7 +113,7 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 				unsigned short nGroupId = mapThreadIDsToProcessorGroupNum.find(i)->second;
 				vecThreadCountPerGroup[nGroupId]--;
 				mapThreadIDsToProcessorGroupNum.erase(i);
-				Log.Write(L"\n Thread %u terminated on group %u", i, nGroupId);
+				m_log.Write(L"\n Thread %u terminated on group %u", i, nGroupId);
 			}
 			// add new threads
 			std::vector<unsigned long> vecPendingThreadIDAdditions;
@@ -126,7 +132,7 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 				if (vecThreadCountPerGroup[nDefaultGroupId] < vecProcessorsPerGroup[nDefaultGroupId])
 				{
 					nGroupId = nDefaultGroupId;
-					Log.Write(L"\n Leaving thread in default group.");
+					m_log.Write(L"\n Leaving thread in default group.");
 				}
 				else
 				{
@@ -146,7 +152,7 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 				if (nGroupId == GroupExtend::INVALID_GROUP_ID)
 				{
 					nGroupId = nDefaultGroupId;
-					Log.Write(L"\n No space in supplemental group(s), leaving in default group");
+					m_log.Write(L"\n No space in supplemental group(s), leaving in default group");
 				}
 				// if not default group, then select specific CPU
 				if (nGroupId != nDefaultGroupId)
@@ -163,35 +169,37 @@ int ExtendGroupForProcess(unsigned long pid, HANDLE hQuitNotifyEvent, LogOut &Lo
 						{
 							// error, so leave in default group						
 							nGroupId = nDefaultGroupId;
-							Log.Write(L"\n WARNING: Error setting thread affinity for %u (terminated too quick?). Leaving in default group.", i);
+							m_log.Write(L"\n WARNING: Error setting thread affinity for %u (terminated too quick?). Leaving in default group.", i);
 						}
 					}
 					else
 					{
 						// no access, so leave in default group						
 						nGroupId = nDefaultGroupId;
-						Log.Write(L"\n WARNING: No access to thread %u. Leaving in default group.", i);
+						m_log.Write(L"\n WARNING: No access to thread %u. Leaving in default group.", i);
 					}
 				}
-				Log.Write(L"\n Thread %u found, group %u", i, nGroupId);
+				m_log.Write(L"\n Thread %u found, group %u", i, nGroupId);
 				vecThreadCountPerGroup[nGroupId]++;
 				mapThreadIDsToProcessorGroupNum[i] = nGroupId;				
 			}
 
-			Log.Write(L"\n Managing %u threads", mapThreadIDsToProcessorGroupNum.size());
+			m_log.Write(L"\n Managing %u threads", mapThreadIDsToProcessorGroupNum.size());
 			for (unsigned short n = 0; n < nActiveGroupCount; n++)
 			{
-				Log.Write(L"\n Group %u has %u threads", n, vecThreadCountPerGroup[n]);
+				m_log.Write(L"\n Group %u has %u threads", n, vecThreadCountPerGroup[n]);
 			}
 
 			if (!mapThreadIDsToProcessorGroupNum.size())
 			{
-				Log.Write(L"\n No threads to manage, exiting ...");
+				m_log.Write(L"\n No threads to manage, exiting ...");
 				break;
 			}
+			CloseHandle(hSnapshot);
 		}
-		CloseHandle(hSnapshot);
-	} while (WaitForSingleObject(hQuitNotifyEvent, GroupExtend::REFRESH_MS) == WAIT_TIMEOUT);
+	} while (WaitForSingleObject(m_hQuitNotifyEvent, m_nRefreshRateMs) == WAIT_TIMEOUT);
 
+	// signal caller that our thread stopped
+	if (m_hThreadStoppedEvent) SetEvent(m_hThreadStoppedEvent);
 	return 0;
 }

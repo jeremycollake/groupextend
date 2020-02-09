@@ -4,8 +4,13 @@
 #include "pch.h"
 #include "LogOut.h"
 
-LogOut::LogOut(const LOG_TARGET logTarget) : logTarget(logTarget)
+LogOut::LogOut(const LOG_TARGET target) : logTarget(target)
 {	
+}
+
+void LogOut::SetTarget(const LOG_TARGET target)
+{
+	logTarget = target;
 }
 
 void LogOut::Write(LPCTSTR fmt, ...)

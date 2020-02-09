@@ -30,7 +30,7 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 
 int wmain(int argc, const wchar_t* argv[])
 {
-	LogOut Log(LogOut::LTARGET_STDOUT);
+	LogOut Log(GroupExtend::DefaultLogTarget);
 	Log.Write(GroupExtend::INTRO_STRING);
 	Log.Write(GroupExtend::BUILD_STRING_FMT, GroupExtend::BUILD_NUM_STR, __DATE__);
 	Log.Write(L"\n");
@@ -39,9 +39,7 @@ int wmain(int argc, const wchar_t* argv[])
 	{
 		ShowUsage();
 		return 1;
-	}
-
-	g_hExitEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	}	
 
 	// try to resolve command line argument(s) to PIDs from exeName
 	// if that fails, assume is numeric PID
@@ -70,7 +68,7 @@ int wmain(int argc, const wchar_t* argv[])
 	if (vecTargetPIDs.size() == 0)
 	{
 		Log.Write(L"\nERROR: No processes found that match specification.\n");
-		return 5;
+		return 2;
 	}
 
 	if (vecTargetPIDs.size() > 1)
@@ -81,10 +79,31 @@ int wmain(int argc, const wchar_t* argv[])
 	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 
+	// create before SetConsoelCtrlHandler
+	g_hExitEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
 	SetConsoleCtrlHandler(CtrlHandler, TRUE);
 
-	int nR = ExtendGroupForProcess(vecTargetPIDs[0], g_hExitEvent, Log);
+	// for signalling caller that thread stopped (e.g. process no longer exists or error)
+	HANDLE hThreadStoppedEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
+	if (!g_hExitEvent || !hThreadStoppedEvent)
+	{
+		Log.Write(L"\n ERROR creating events. Aborting");
+		if (hThreadStoppedEvent) CloseHandle(hThreadStoppedEvent);
+		if (g_hExitEvent) CloseHandle(g_hExitEvent);		
+		return 3;
+	}
+	
+	ProcessorGroupExtender_SingleProcess cExtender;
+	if (cExtender.StartAsync(vecTargetPIDs[0], 0, GroupExtend::DefaultLogTarget, hThreadStoppedEvent))
+	{
+		HANDLE hWaits[2] = { g_hExitEvent, hThreadStoppedEvent };
+		WaitForMultipleObjects(_countof(hWaits), hWaits, FALSE, INFINITE);
+		cExtender.Stop();
+	}
+	
+	CloseHandle(hThreadStoppedEvent);
 	CloseHandle(g_hExitEvent);
-	return nR;
+	return 0;
 }
