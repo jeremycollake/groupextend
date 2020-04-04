@@ -95,6 +95,10 @@ int wmain(int argc, const wchar_t* argv[])
 		return 3;
 	}
 	
+	//
+	// start management of target process threads
+	// magic is in libProcessorGroupExtender
+	// 	
 	ProcessorGroupExtender_SingleProcess cExtender;
 	if (cExtender.StartAsync(vecTargetPIDs[0], 0, GroupExtend::DefaultLogTarget, hThreadStoppedEvent))
 	{
