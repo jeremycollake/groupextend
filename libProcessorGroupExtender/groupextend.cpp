@@ -86,7 +86,7 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 			{
 				m_log.FormattedErrorOut(L" Thread32First");
 				CloseHandle(hSnapshot);
-				return(FALSE);
+				return 4;
 			}
 
 			// for marking each thread ID as found so we can identify deleted threads and remove from mapThreadIDsToProcessorGroupNum
