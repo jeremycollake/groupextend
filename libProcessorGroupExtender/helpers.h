@@ -6,3 +6,6 @@ unsigned int GetPIDsForProcessName(const WCHAR* pwszBaseName, std::vector<unsign
 unsigned int GetProcessProcessorGroups(const unsigned long pid, std::vector<unsigned short>& vGroups);
 // build CPU affinity mask for X processors
 unsigned long long BuildAffinityMask(const unsigned int nProcessors);
+
+// privilege acquistion
+bool NtGetPrivByName(const WCHAR* ptszPrivName);

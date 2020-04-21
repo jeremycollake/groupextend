@@ -79,3 +79,18 @@ unsigned long long BuildAffinityMask(const unsigned int nProcessors)
 	return bitmaskAffinity;
 }
 
+
+bool NtGetPrivByName(const WCHAR* pwszPrivName)
+{
+	HANDLE hToken;
+	TOKEN_PRIVILEGES tkp;
+	if (!OpenProcessToken(GetCurrentProcess(),
+		TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+	{
+		return false;
+	}
+	LookupPrivilegeValue(NULL, pwszPrivName, &tkp.Privileges[0].Luid);
+	tkp.PrivilegeCount = 1;
+	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+	return AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0) ? true : false;
+}

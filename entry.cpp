@@ -76,6 +76,22 @@ int wmain(int argc, const wchar_t* argv[])
 		Log.Write(L"\nWARNING: Multiple process instances were found, but groupextend can currently only manage one (per instance). Managing %u", vecTargetPIDs[0]);
 	}
 
+	// required priv tokens, by name
+	const WCHAR* pwszSecTokens[] =
+	{
+		SE_ASSIGNPRIMARYTOKEN_NAME,
+		SE_DEBUG_NAME,
+		SE_INC_BASE_PRIORITY_NAME		
+	};
+
+	for (const WCHAR *pwszToken : pwszSecTokens)
+	{		
+		if (!NtGetPrivByName(pwszToken))
+		{
+			Log.Write(L"\n WARNING: Couldn't get priviledge %s", pwszToken);
+		}
+	}
+
 	SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
 	//SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
 
