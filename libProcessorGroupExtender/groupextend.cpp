@@ -136,11 +136,12 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 				}
 				else
 				{
+					// iterate through available processor groups and decide where to place this thread
 					for (int n = 0; n < nActiveGroupCount; n++)
 					{
 						// only check groups other than default
 						if (n != nDefaultGroupId)
-						{
+						{							
 							if (vecThreadCountPerGroup[n] < vecProcessorsPerGroup[n])
 							{
 								nGroupId = n;
@@ -154,7 +155,7 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 					nGroupId = nDefaultGroupId;
 					m_log.Write(L"\n No space in supplemental group(s), leaving in default group");
 				}
-				// if not default group, then select specific CPU
+				// if not default group, then select specific processor group
 				if (nGroupId != nDefaultGroupId)
 				{
 					HANDLE hThread = OpenThread(THREAD_SET_INFORMATION | THREAD_QUERY_INFORMATION, FALSE, i);
