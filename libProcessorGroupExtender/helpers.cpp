@@ -1,96 +1,99 @@
 #include "pch.h"
 #include "helpers.h"
 
-// resolve process name to PID(s)
-unsigned int GetPIDsForProcessName(const WCHAR* pwszBaseName, std::vector<unsigned long>& vFoundPids)
+namespace GroupExtend
 {
-	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-	if (hSnapshot == INVALID_HANDLE_VALUE)
-	{		
-		return 0;
-	}
-
-	if (hSnapshot)
+	// resolve process name to PID(s)
+	unsigned int GetPIDsForProcessName(const WCHAR* pwszBaseName, std::vector<unsigned long>& vFoundPids)
 	{
-		PROCESSENTRY32 pe32;
-		pe32.dwSize = sizeof(PROCESSENTRY32);
-		if (!Process32First(hSnapshot, &pe32))
-		{			
-			CloseHandle(hSnapshot);
-			return(FALSE);
-		}
-		do
+		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+		if (hSnapshot == INVALID_HANDLE_VALUE)
 		{
-			if (0 == _wcsnicmp(pwszBaseName, pe32.szExeFile, _countof(pe32.szExeFile)))
+			return 0;
+		}
+
+		if (hSnapshot)
+		{
+			PROCESSENTRY32 pe32;
+			pe32.dwSize = sizeof(PROCESSENTRY32);
+			if (!Process32First(hSnapshot, &pe32))
 			{
-				vFoundPids.push_back(pe32.th32ProcessID);
+				CloseHandle(hSnapshot);
+				return(FALSE);
 			}
-		} while (Process32Next(hSnapshot, &pe32));
+			do
+			{
+				if (0 == _wcsnicmp(pwszBaseName, pe32.szExeFile, _countof(pe32.szExeFile)))
+				{
+					vFoundPids.push_back(pe32.th32ProcessID);
+				}
+			} while (Process32Next(hSnapshot, &pe32));
 
-		CloseHandle(hSnapshot);
+			CloseHandle(hSnapshot);
+		}
+
+		return static_cast<unsigned int>(vFoundPids.size());
 	}
 
-	return static_cast<unsigned int>(vFoundPids.size());
-}
-
-// return value is count of processor groups. Returns list of groups associated with this process
-unsigned int GetProcessProcessorGroups(const unsigned long pid, std::vector<unsigned short>& vGroups)
-{
-	vGroups.clear();
-
-	HANDLE hProcess = NULL;
-	hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
-	if (!hProcess)
+	// return value is count of processor groups. Returns list of groups associated with this process
+	unsigned int GetProcessProcessorGroups(const unsigned long pid, std::vector<unsigned short>& vGroups)
 	{
-		return 0;
-	}
-	unsigned short nGroupCount = 0;
-	unsigned short* pGroupArray = NULL;
-	// get the required buffer size
-	if (FALSE != GetProcessGroupAffinity(hProcess, &nGroupCount, NULL)
-		||
-		ERROR_INSUFFICIENT_BUFFER != GetLastError())
-	{
-		return 0;
-	}
-	pGroupArray = new unsigned short[nGroupCount];
-	if (FALSE == GetProcessGroupAffinity(hProcess, &nGroupCount, pGroupArray))
-	{
-		return 0;
-	}
-	// got the groups, populate vector and return
-	for (unsigned short nI = 0; nI < nGroupCount; nI++)
-	{
-		vGroups.push_back(pGroupArray[nI]);
-	}
-	delete pGroupArray;
+		vGroups.clear();
 
-	return static_cast<unsigned int>(vGroups.size());
-}
+		HANDLE hProcess = NULL;
+		hProcess = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+		if (!hProcess)
+		{
+			return 0;
+		}
+		unsigned short nGroupCount = 0;
+		unsigned short* pGroupArray = NULL;
+		// get the required buffer size
+		if (FALSE != GetProcessGroupAffinity(hProcess, &nGroupCount, NULL)
+			||
+			ERROR_INSUFFICIENT_BUFFER != GetLastError())
+		{
+			return 0;
+		}
+		pGroupArray = new unsigned short[nGroupCount];
+		if (FALSE == GetProcessGroupAffinity(hProcess, &nGroupCount, pGroupArray))
+		{
+			return 0;
+		}
+		// got the groups, populate vector and return
+		for (unsigned short nI = 0; nI < nGroupCount; nI++)
+		{
+			vGroups.push_back(pGroupArray[nI]);
+		}
+		delete pGroupArray;
 
-// build CPU affinity mask for X processors
-unsigned long long BuildAffinityMask(const unsigned int nProcessors)
-{
-	unsigned long long bitmaskAffinity = 0;
-	for (unsigned int n = 0; n < nProcessors; n++)
-	{
-		bitmaskAffinity |= (1ULL << n);
+		return static_cast<unsigned int>(vGroups.size());
 	}
-	return bitmaskAffinity;
-}
 
-
-bool NtGetPrivByName(const WCHAR* pwszPrivName)
-{
-	HANDLE hToken;
-	TOKEN_PRIVILEGES tkp;
-	if (!OpenProcessToken(GetCurrentProcess(),
-		TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+	// build CPU affinity mask for X processors
+	unsigned long long BuildAffinityMask(const unsigned int nProcessors)
 	{
-		return false;
+		unsigned long long bitmaskAffinity = 0;
+		for (unsigned int n = 0; n < nProcessors; n++)
+		{
+			bitmaskAffinity |= (1ULL << n);
+		}
+		return bitmaskAffinity;
 	}
-	LookupPrivilegeValue(NULL, pwszPrivName, &tkp.Privileges[0].Luid);
-	tkp.PrivilegeCount = 1;
-	tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-	return AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0) ? true : false;
+
+
+	bool NtGetPrivByName(const WCHAR* pwszPrivName)
+	{
+		HANDLE hToken;
+		TOKEN_PRIVILEGES tkp;
+		if (!OpenProcessToken(GetCurrentProcess(),
+			TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken))
+		{
+			return false;
+		}
+		LookupPrivilegeValue(NULL, pwszPrivName, &tkp.Privileges[0].Luid);
+		tkp.PrivilegeCount = 1;
+		tkp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+		return AdjustTokenPrivileges(hToken, FALSE, &tkp, 0, (PTOKEN_PRIVILEGES)NULL, 0) ? true : false;
+	}
 }

@@ -47,7 +47,7 @@ int wmain(int argc, const wchar_t* argv[])
 	std::vector<unsigned long> vecTargetPIDs;
 	for (int i = 1; i < argc; i++)
 	{
-		if (GetPIDsForProcessName(argv[i], vecTargetPIDs))
+		if (GroupExtend::GetPIDsForProcessName(argv[i], vecTargetPIDs))
 		{
 			Log.Write(L"\n%s has instances of PID(s)", argv[i]);
 			for (auto& pid : vecTargetPIDs)
@@ -86,9 +86,9 @@ int wmain(int argc, const wchar_t* argv[])
 
 	for (const WCHAR *pwszToken : pwszSecTokens)
 	{		
-		if (!NtGetPrivByName(pwszToken))
+		if (!GroupExtend::NtGetPrivByName(pwszToken))
 		{
-			Log.Write(L"\n WARNING: Couldn't get priviledge %s", pwszToken);
+			Log.Write(L"\n WARNING: Couldn't get privilege %s", pwszToken);
 		}
 	}
 

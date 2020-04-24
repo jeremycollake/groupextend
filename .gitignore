@@ -16,3 +16,6 @@
 /libProcessorGroupExtender/x64/Release
 *.user
 *.filters
+/libProcessorGroupExtender/Release/libProce.F31C257F.tlog
+/libProcessorGroupExtender/Release
+/libProcessorGroupExtender/x64/Debug/libProce.F31C257F.tlog
