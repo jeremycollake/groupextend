@@ -125,20 +125,9 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 		}
 		for (auto& i : vecPendingThreadIDAdditions)
 		{
-			unsigned short nGroupId = GroupExtend::INVALID_GROUP_ID;
-			// determine target group (if room on default group, use it, then use others)
-			// if not default group, check CPU assignment mask of group for first free CPU, and use it
-			if (vecThreadCountPerGroup[nDefaultGroupId] < vecProcessorsPerGroup[nDefaultGroupId])
-			{
-				nGroupId = nDefaultGroupId;
-				m_log.Write(L"\n Leaving thread in default group.");
-			}
-			else
-			{
-				// randomly spread threads across available processor groups			
-				nGroupId = rand() % nActiveGroupCount + 1;
-			}
-			
+			// randomly spread threads across available processor groups		
+			unsigned short nGroupId = rand() % nActiveGroupCount;
+									
 			// if not default group, then set specific processor group
 			if (nGroupId != nDefaultGroupId)
 			{
