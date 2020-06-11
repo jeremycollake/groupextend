@@ -127,32 +127,29 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 		{
 			// randomly spread threads across available processor groups		
 			unsigned short nGroupId = rand() % nActiveGroupCount;
-									
-			// if not default group, then set specific processor group
-			if (nGroupId != nDefaultGroupId)
+												
+			HANDLE hThread = OpenThread(THREAD_SET_INFORMATION | THREAD_QUERY_INFORMATION, FALSE, i);
+			if (hThread)
 			{
-				HANDLE hThread = OpenThread(THREAD_SET_INFORMATION | THREAD_QUERY_INFORMATION, FALSE, i);
-				if (hThread)
+				GROUP_AFFINITY grpAffinity = {};
+				grpAffinity.Group = nGroupId;
+				grpAffinity.Mask = static_cast<KAFFINITY>(vecAllCPUMaskPerGroup[nGroupId]);
+				DWORD_PTR dwPriorAffinity = SetThreadGroupAffinity(hThread, &grpAffinity, nullptr);
+				CloseHandle(hThread);
+				if (!dwPriorAffinity)
 				{
-					GROUP_AFFINITY grpAffinity = {};
-					grpAffinity.Group = nGroupId;
-					grpAffinity.Mask = static_cast<KAFFINITY>(vecAllCPUMaskPerGroup[nGroupId]);
-					DWORD_PTR dwPriorAffinity = SetThreadGroupAffinity(hThread, &grpAffinity, nullptr);
-					CloseHandle(hThread);
-					if (!dwPriorAffinity)
-					{
-						// error, so leave in default group						
-						nGroupId = nDefaultGroupId;
-						m_log.Write(L"\n WARNING: Error setting thread affinity for %u (terminated too quick?). Leaving in default group.", i);
-					}
-				}
-				else
-				{
-					// no access, so leave in default group						
+					// error, so leave in default group						
 					nGroupId = nDefaultGroupId;
-					m_log.Write(L"\n WARNING: No access to thread %u. Leaving in default group.", i);
+					m_log.Write(L"\n WARNING: Error setting thread affinity for %u (terminated too quick?). Leaving in default group.", i);
 				}
 			}
+			else
+			{
+				// no access, so leave in default group						
+				nGroupId = nDefaultGroupId;
+				m_log.Write(L"\n WARNING: No access to thread %u. Leaving in default group.", i);
+			}
+
 			m_log.Write(L"\n Thread %u found, group %u", i, nGroupId);
 			vecThreadCountPerGroup[nGroupId]++;
 			mapThreadIDsToProcessorGroupNum[i] = nGroupId;
