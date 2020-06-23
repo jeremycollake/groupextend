@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#define DEBUG_TRACING
+//#define DEBUG_TRACING
 
 #if defined(DEBUG) || defined(DEBUG_TRACING)
 #define MyDebugOutput OutputDebugString
