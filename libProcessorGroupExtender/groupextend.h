@@ -1,9 +1,10 @@
 /*
-* (c)2020 Jeremy Collake <jeremy@bitsum.com>, Bitsum LLC
+* (c)2022 Jeremy Collake <jeremy@bitsum.com>, Bitsum LLC
 */
 #pragma once
 
 #include "LogOut.h"
+#include <mutex>
 #include <thread>
 
 namespace GroupExtend
@@ -20,7 +21,7 @@ class ProcessorGroupExtender_SingleProcess
 	HANDLE m_hThreadStoppedEvent; // for signalling caller thread stopped (prematurely)
 	unsigned long m_pid;
 	LogOut m_log;
-	unsigned long m_nRefreshRateMs;
+	unsigned long m_nRefreshRateMs;	
 
 	int ExtendGroupForProcess();
 public:
