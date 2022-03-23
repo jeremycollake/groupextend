@@ -2,20 +2,16 @@
 # This .gitignore file was automatically created by Microsoft(R) Visual Studio.
 ################################################################################
 
-/.vs/groupextend/v16
+/.vs/
 *.aps
-/groupextend.vcxproj.user
-/groupextend.vcxproj.filters
-/Release/groupextend.tlog
-/x64/Release/groupextend.tlog
-/x64/Debug/groupextend.tlog
-/x64/Debug
-/x64/Release
-/Release
-/libProcessorGroupExtender/x64/Release/libProce.F31C257F.tlog
-/libProcessorGroupExtender/x64/Release
+*.tlog
 *.user
 *.filters
-/libProcessorGroupExtender/Release/libProce.F31C257F.tlog
-/libProcessorGroupExtender/Release
-/libProcessorGroupExtender/x64/Debug/libProce.F31C257F.tlog
+/Release/
+/Debug/
+/x64/Debug/
+/x64/Release/
+/libProcessorGroupExtender/Release/
+/libProcessorGroupExtender/Debug/
+/libProcessorGroupExtender/x64/Release/
+/libProcessorGroupExtender/x64/Debug/
