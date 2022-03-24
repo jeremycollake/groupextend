@@ -15,15 +15,15 @@
 int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 {
 	m_log.Write(L"\n Monitoring process %u with refresh rate of %u ms", m_pid, m_nRefreshRateMs);
-	
-	_ASSERT(m_pid && m_nRefreshRateMs>=GroupExtend::REFRESH_MINIMUM_ALLOWED_MS);
+
+	_ASSERT(m_pid && m_nRefreshRateMs >= GroupExtend::REFRESH_MINIMUM_ALLOWED_MS);
 
 	srand(static_cast<unsigned int>(time(nullptr)));
 
 	unsigned short nActiveGroupCount = static_cast<unsigned short>(GetActiveProcessorGroupCount());
 	if (nActiveGroupCount < 2)
 	{
-		m_log.Write(L"\n ERROR: Active processor groups is only %u. Nothing to do, aborting.", nActiveGroupCount);		
+		m_log.Write(L"\n ERROR: Active processor groups is only %u. Nothing to do, aborting.", nActiveGroupCount);
 		if (m_hThreadStoppedEvent) SetEvent(m_hThreadStoppedEvent);
 		return 2;
 	}
@@ -46,7 +46,7 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 		m_log.Write(L"\n ERROR: GetProcessProcessorGroups returned 0. Aborting.");
 		if (m_hThreadStoppedEvent) SetEvent(m_hThreadStoppedEvent);
 		return 3;
-	}	
+	}
 	if (vecGroupsThisProcess.size() > 1)
 	{
 		m_log.Write(L"\n WARNING: Process is already multi-group! This algorithm may place threads on groups the application doesn't expect.");
@@ -127,7 +127,7 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 		{
 			// randomly spread threads across available processor groups		
 			unsigned short nGroupId = rand() % nActiveGroupCount;
-												
+
 			HANDLE hThread = OpenThread(THREAD_SET_INFORMATION | THREAD_QUERY_INFORMATION, FALSE, i);
 			if (hThread)
 			{

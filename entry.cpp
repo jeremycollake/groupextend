@@ -39,7 +39,7 @@ int wmain(int argc, const wchar_t* argv[])
 	{
 		ShowUsage();
 		return 1;
-	}	
+	}
 
 	// try to resolve command line argument(s) to PIDs from exeName
 	// if that fails, assume is numeric PID
@@ -81,11 +81,11 @@ int wmain(int argc, const wchar_t* argv[])
 	{
 		SE_ASSIGNPRIMARYTOKEN_NAME,
 		SE_DEBUG_NAME,
-		SE_INC_BASE_PRIORITY_NAME		
+		SE_INC_BASE_PRIORITY_NAME
 	};
 
-	for (const WCHAR *pwszToken : pwszSecTokens)
-	{		
+	for (const WCHAR* pwszToken : pwszSecTokens)
+	{
 		if (!GroupExtend::NtGetPrivByName(pwszToken))
 		{
 			Log.Write(L"\n WARNING: Couldn't get privilege %s", pwszToken);
@@ -107,10 +107,10 @@ int wmain(int argc, const wchar_t* argv[])
 	{
 		Log.Write(L"\n ERROR creating events. Aborting");
 		if (hThreadStoppedEvent) CloseHandle(hThreadStoppedEvent);
-		if (g_hExitEvent) CloseHandle(g_hExitEvent);		
+		if (g_hExitEvent) CloseHandle(g_hExitEvent);
 		return 3;
 	}
-	
+
 	//
 	// start management of target process threads
 	// magic is in libProcessorGroupExtender
@@ -122,7 +122,7 @@ int wmain(int argc, const wchar_t* argv[])
 		WaitForMultipleObjects(_countof(hWaits), hWaits, FALSE, INFINITE);
 		cExtender.Stop();
 	}
-	
+
 	CloseHandle(hThreadStoppedEvent);
 	CloseHandle(g_hExitEvent);
 	return 0;

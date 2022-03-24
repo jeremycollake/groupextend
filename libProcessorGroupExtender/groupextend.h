@@ -15,7 +15,7 @@ namespace GroupExtend
 // intended to manage only a single process per group extension instance
 class ProcessorGroupExtender_SingleProcess
 {
-	std::thread m_hExtenderThread;		
+	std::thread m_hExtenderThread;
 	HANDLE m_hQuitNotifyEvent;	  // for signalling thread to stop
 	HANDLE m_hThreadStoppedEvent; // for signalling caller thread stopped (prematurely)
 	unsigned long m_pid;
@@ -24,9 +24,9 @@ class ProcessorGroupExtender_SingleProcess
 
 	int ExtendGroupForProcess();
 public:
-	ProcessorGroupExtender_SingleProcess() : 
-		m_pid(0), 
-		m_nRefreshRateMs(GroupExtend::REFRESH_MS), 
+	ProcessorGroupExtender_SingleProcess() :
+		m_pid(0),
+		m_nRefreshRateMs(GroupExtend::REFRESH_MS),
 		m_hQuitNotifyEvent(nullptr),
 		m_hThreadStoppedEvent(nullptr)
 	{}
@@ -46,11 +46,11 @@ public:
 		return m_hExtenderThread.joinable();
 	}
 	bool StartAsync(unsigned long pid, unsigned long nRefreshRateMs, LogOut::LOG_TARGET logTarget, HANDLE hThreadStoppedEvent)
-	{			
+	{
 		if (IsActive())
 		{
 			return false;
-		}		
+		}
 		m_pid = pid;
 		m_log.SetTarget(logTarget);
 		m_hThreadStoppedEvent = hThreadStoppedEvent;

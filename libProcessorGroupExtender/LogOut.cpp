@@ -5,7 +5,7 @@
 #include "LogOut.h"
 
 LogOut::LogOut(const LOG_TARGET target) : logTarget(target)
-{	
+{
 }
 
 void LogOut::SetTarget(const LOG_TARGET target)
@@ -24,8 +24,8 @@ void LogOut::Write(LPCTSTR fmt, ...)
 	CString csTemp;
 	csTemp.Format(L"%s", szBuf);
 	switch (logTarget)
-	{	
-	case LTARGET_STDOUT:		
+	{
+	case LTARGET_STDOUT:
 		wprintf(L"%s", csTemp.GetBuffer());
 		break;
 	case LTARGET_FILE:
@@ -37,7 +37,7 @@ void LogOut::Write(LPCTSTR fmt, ...)
 		MyDebugOutput(csTemp);
 		break;
 	case LTARGET_NONE:
-	default:	
+	default:
 		break;
 	}
 }
