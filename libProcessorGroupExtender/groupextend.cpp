@@ -1,5 +1,5 @@
 /*
-* (c)2020 Jeremy Collake <jeremy@bitsum.com>, Bitsum LLC
+* (c)2022 Jeremy Collake <jeremy@bitsum.com>, Bitsum LLC
 */
 #include "pch.h"
 #include "groupextend.h"
@@ -10,6 +10,11 @@
 #include "../entry.h"
 
 // async wrapper implemented in header file
+
+// this mutex necessary due to thread-safety quirk in the Toolhelp library,
+// despite each thread obtaining a new and distinct snapshot.
+// See https://github.com/jeremycollake/groupextend/issues/5
+std::mutex g_mutex_ToolhelpSnapshots;
 
 // the meat
 int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
@@ -73,6 +78,8 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 
 	do
 	{
+		std::lock_guard<std::mutex> lock(g_mutex_ToolhelpSnapshots);
+
 		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 		if (hSnapshot == INVALID_HANDLE_VALUE)
 		{

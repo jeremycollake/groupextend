@@ -4,6 +4,7 @@
 #pragma once
 
 #include "LogOut.h"
+#include <mutex>
 #include <thread>
 
 namespace GroupExtend
