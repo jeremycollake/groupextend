@@ -79,6 +79,7 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 	do
 	{
 		std::lock_guard<std::mutex> lock(g_mutex_ToolhelpSnapshots);
+
 		HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 		if (hSnapshot == INVALID_HANDLE_VALUE)
 		{
