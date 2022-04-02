@@ -1,2 +1,0 @@
-C:\dev\projs\ProcessSupervisor\x64\Debug\libProcessorGroupExtender.pdb
-C:\dev\repo\groupextend\libProcessorGroupExtender\x64\Debug\libProcessorGroupExtender.pdb
