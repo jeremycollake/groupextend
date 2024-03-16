@@ -168,12 +168,13 @@ int ProcessorGroupExtender_SingleProcess::ExtendGroupForProcess()
 			m_log.Write(L"\n Group %u has %u threads", n, vecThreadCountPerGroup[n]);
 		}
 
+		CloseHandle(hSnapshot);
+
 		if (!mapThreadIDsToProcessorGroupNum.size())
 		{
 			m_log.Write(L"\n No threads to manage, exiting ...");
 			break;
 		}
-		CloseHandle(hSnapshot);
 	} while (WaitForSingleObject(m_hQuitNotifyEvent, m_nRefreshRateMs) == WAIT_TIMEOUT);
 
 	// signal caller that our thread stopped
